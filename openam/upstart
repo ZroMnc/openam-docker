@@ -1,0 +1,28 @@
+#!/bin/bash
+#
+# Start a local instance
+# 
+# == Copyright
+#
+# Copyright 2016 Christian Viola
+#
+set -e
+
+#VARS
+opendj_setup(){
+    /usr/bin/opendj
+}
+
+openam_setup(){
+    /etc/init.d/openam start
+}
+
+main(){
+    opendj_setup
+    sleep 10
+    openam_setup
+}
+
+main
+while pgrep java > /dev/null; do sleep 1; done
+#EOF

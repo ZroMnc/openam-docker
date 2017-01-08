@@ -1,0 +1,58 @@
+# Logging File-Based Access Logger
+set-log-publisher-prop \
+    --publisher-name "File-Based Access Logger" \
+    --set log-format:combined \
+    --set retention-policy:Free\ Disk\ Space\ Retention\ Policy \
+    --no-prompt
+set-log-publisher-prop \
+    --publisher-name "File-Based Access Logger" \
+    --set log-record-time-format:"dd/MMM/yyyy:HH:mm:ss:SSS Z" \
+    --no-prompt
+set-log-publisher-prop \
+    --publisher-name "File-Based Error Logger" \
+    --add retention-policy:Free\ Disk\ Space\ Retention\ Policy \
+    --remove rotation-policy:7\ Days\ Time\ Limit\ Rotation\ Policy \
+    --add rotation-policy:24\ Hours\ Time\ Limit\ Rotation\ Policy \
+    --no-prompt
+# Global Config
+set-global-configuration-prop \
+    --set idle-time-limit:290000ms \
+    --no-prompt
+set-global-configuration-prop \
+    --set size-limit:1001 \
+    --no-prompt
+# Global Config
+set-global-configuration-prop \
+    --set lookthrough-limit:0 \
+    --no-prompt
+# Indexes 
+create-backend-index \
+    --backend-name userRoot \
+    --index-name ou \
+    --set index-type:equality \
+    --type generic \
+    --no-prompt
+create-backend-index \
+    --backend-name userRoot \
+    --index-name sunxmlKeyValue \
+    --set index-type:equality \
+    --set index-type:substring \
+    --type generic \
+    --no-prompt
+#CTS Cache
+set-backend-prop \
+    --backend-name userRoot \
+    --set db-cache-percent:80 \
+    --no-prompt
+# Create Index
+create-backend-index \
+    --backend-name userRoot \
+    --set index-type:ordering \
+    --type generic \
+    --index-name coreTokenExpirationDate \
+    --no-prompt
+
+# Sets password storage scheme
+set-password-storage-scheme-prop \
+    --scheme-name Salted\ SHA-512 \
+    --no-prompt

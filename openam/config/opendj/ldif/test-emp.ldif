@@ -1,0 +1,35 @@
+dn: uid=testemployee,ou=people,dc=terminus,dc=net
+changeType: add
+uid: testemployee
+userPassword: iamdev@zal123
+givenName: test
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: terminusPerson
+objectClass: top
+userStatus: active
+costCenter: 0001104715
+mail: testemployee@bogus.com
+employeeID: 00123456
+sn: Test Employee
+cn: Test Employee User
+
+dn: uid=samltest,ou=people,dc=terminus,dc=net
+changeType: add
+uid: saml
+userPassword: samldev@zal123
+givenName: test
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: terminusPerson
+objectClass: top
+userStatus: active
+costCenter: 0001104715
+mail: testemployee@bogus.com
+employeeID: 00123456
+sn: SAML Test
+cn: SAML Test User
+
+

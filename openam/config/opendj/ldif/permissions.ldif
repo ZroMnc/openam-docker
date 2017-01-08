@@ -1,0 +1,9 @@
+dn: dc=terminus,dc=net
+changetype: modify
+replace: aci
+aci: (targetcontrol="2.16.840.1.113730.3.4.3")(version 3.0;acl "Allow OpenAM to persistent search"; allow (search, read)(userdn = "ldap:///uid=openam,ou=admins,dc=terminus,dc=net");)
+aci: (target = "ldap:///dc=terminus,dc=net")(targetattr="*")(version 3.0;acl "Allow OpenAM to control identity data"; allow (all)(userdn = "ldap:///uid=openam,ou=admins,dc=terminus,dc=net");)
+aci: (targetattr="*")(version 3.0;acl "Allow entry search";  allow (search, read)(userdn = "ldap:///uid=openam,ou=admins,dc=terminus,dc=net");)
+aci: (targetattr="*")(version 3.0;acl "Modify config entry";  allow (write)(userdn =  "ldap:///uid=openam,ou=admins,dc=terminus,dc=net");)
+aci: (version 3.0;acl "Add config entry"; allow (add)(userdn =  "ldap:///uid=openam,ou=admins,dc=terminus,dc=net");)
+aci: (version 3.0;acl "Delete config entry"; allow (delete)(userdn =  "ldap:///uid=openam,ou=admins,dc=terminus,dc=net");)

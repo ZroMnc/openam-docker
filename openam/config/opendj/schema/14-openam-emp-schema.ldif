@@ -1,0 +1,21 @@
+dn: cn=schema
+objectClass: top
+objectClass: ldapSubentry
+objectClass: subschema
+cn: schema
+attributeTypes: ( userStatus-oid NAME 'userStatus' DESC 'userStatus' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications )
+attributeTypes: ( costCenter-oid NAME 'costCenter' DESC 'costCenter' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications )
+attributeTypes: ( employeeID-oid NAME 'employeeID' DESC 'employeeID' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications )
+attributeTypes: ( mainMobileNumber-oid NAME 'mainMobileNumber' DESC 'mainMobileNumber' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications )
+attributeTypes: ( ADObjectGuid-oid NAME 'ADObjectGuid' DESC 'ADObjectGuid' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications )
+attributeTypes: ( peopleLead-oid NAME 'peopleLead' DESC 'peopleLead' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications )
+attributeTypes: ( companyMobileNumber-oid NAME 'companyMobileNumber' DESC 'companyMobileNumber' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications )
+attributeTypes: ( privateMobileNumber-oid NAME 'privateMobileNumber' DESC 'privateMobileNumber' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications )
+attributeTypes: ( accountExpires-oid NAME 'accountExpires' DESC 'accountExpires' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications )
+attributeTypes: ( adminDescription-oid NAME 'adminDescription' DESC 'adminDescription' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications )
+attributeTypes: ( terminsscope-oid NAME 'TerminusScope' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications )
+attributeTypes: ( teamID NAME 'teamID' DESC 'teamID' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications )
+attributeTypes: ( oAuth2SavedConsent-oid NAME 'oAuth2SavedConsent' DESC 'Saved OAuth2 Consents' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications )
+attributeTypes: ( u2fDevices-oid NAME 'u2fdevices' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications )
+objectClasses: ( terminusScopes-oid NAME 'terminusScopes' DESC 'Terminus Sctops' SUP top AUXILIARY MAY terminusScope )
+objectClasses: ( terminusPerson-oid NAME 'terminusPerson' DESC 'Terminus Person' SUP top AUXILIARY MAY ( employeeID $ teamID $ userStatus $ ADObjectGuid $ costCenter $ adminDescription $ accountExpires $ mainMobileNumber $ privateMobileNumber $ companyMobileNumber $ peopleLead $ personalTitle $ oAuth2SavedConsent $ u2fdevices ) )

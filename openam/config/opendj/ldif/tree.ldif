@@ -1,0 +1,74 @@
+dn: ou=admins,dc=terminus,dc=net
+changeType: add
+objectClass:top
+objectClass:organizationalUnit
+ou: admins
+
+dn: ou=people,dc=terminus,dc=net
+changeType: add
+objectClass:top
+objectClass:organizationalUnit
+ou: people
+
+dn: ou=groups,dc=terminus,dc=net
+changeType: add
+objectClass:top
+objectClass:organizationalUnit
+ou: groups
+
+dn: ou=tokens,dc=terminus,dc=net
+changeType: add
+objectClass: organizationalUnit
+objectClass: top
+ou: tokens
+
+dn: ou=resource_sets,dc=terminus,dc=net
+changeType: add
+objectClass: organizationalUnit
+objectClass: top
+ou: resource_sets
+
+dn: ou=service-mgt,dc=terminus,dc=net
+changeType: add
+objectClass: top
+objectClass: OrganizationalUnit
+ou: service-mgt
+
+dn: ou=openam-session,ou=tokens,dc=terminus,dc=net
+changeType: add
+objectClass: organizationalUnit
+objectClass: top
+ou: openam-session
+
+dn: ou=famrecords,ou=openam-session,ou=tokens,dc=terminus,dc=net
+changeType: add
+ou: famrecords
+objectClass: organizationalUnit
+
+dn: uid=openam,ou=admins,dc=terminus,dc=net
+changeType: add
+objectClass: top
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+cn: OpenAM Application User
+sn: OpenAM Application User
+uid: openam
+userPassword: iamtest@zal123
+ds-privilege-name: password-reset
+ds-privilege-name: unindexed-search
+ds-privilege-name: subentry-write
+ds-privilege-name: update-schema
+ds-privilege-name: bypass-aci
+
+dn: uid=jmx-mon,ou=admins,dc=terminus,dc=net
+changeType: add
+uid: jmx-mon
+objectClass: top
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+sn: JMX Monitor
+cn: JMX Monitor
+userPassword: iamtest@zal123
+ds-privilege-name: jmx-read

@@ -1,0 +1,261 @@
+#!/bin/bash
+#
+#   Copyright (c) 2016 Zalando SE
+#   Author: Joost ten Brink, Christian Viola, 2016
+#
+# A startup script for an OpenAM instance.
+# Save this as /etc/init.d/openam and chmod +x.
+#
+# To enable startup at boot time:
+# update-rc.d openam defaults
+#
+### BEGIN INIT INFO
+# Provides:          OpenAM
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     99 2 3 4 5
+# Default-Stop:      10 0 1 6
+# Short-Description: Start OpenAM at boot time
+### END INIT INFO
+
+# user running the daemon
+RUNAS_USER="root"
+BASE_DOMAIN="$(echo $BASE)"
+USE_REALM="$(echo $REALM)"
+ENVIRONMENT="$(echo $NEIGHBORHOOD)"
+REALM_SUBDIR="$(echo "${REALM:0:3}"
+
+# path to tomcat installation
+CATALINA_HOME="/opt/tomcat/"; export CATALINA_HOME
+CATALINA_LOGS="/var/log/tomcat/"; export CATALINA_LOGS
+PATH=$CATALINA_HOME/bin:$PATH; export PATH
+INSTANCE_NAME=`basename $CATALINA_HOME`
+
+# path to a JDK
+JAVA_HOME="/usr/lib/jvm/java-8-oracle/"; export JAVA_HOME
+
+# path to openam installation
+OPENAM_HOME="/opt/openam/"; export OPENAM_HOME
+OPENAM_TOOLS="/opt/openam/tools/"; export OPENAM_TOOLS
+OPENAM_CONFIG_DIR="/config/dev"; export OPENAM_CONFIG_DIR
+PATH=$OPENAM_TOOLS/ssoadmin/z/bin:$PATH; export PATH
+
+# timeout in seconds when stopped before its killed
+TIMEOUT=20
+
+# classpath
+oldCP=$CLASSPATH
+unset CLASSPATH
+for i in ${TOMCAT_HOME}/lib/* ; do
+  if [ "$CLASSPATH" != "" ]; then
+    CLASSPATH=${CLASSPATH}:$i
+  else
+    CLASSPATH=$i
+  fi
+done
+
+if [ "$oldCP" != "" ]; then
+    CLASSPATH=${CLASSPATH}:${oldCP}
+fi
+export CLASSPATH
+
+# functions
+force_stop() {
+    COUNTER=0
+    while [ $COUNTER -lt $TIMEOUT ]; do
+        RUNNING=`ps -ef | grep java.util.logging.config.file=$CATALINA_HOME | grep -v grep | wc -l`
+        if [ $RUNNING -gt 0 ]; then
+            echo -n "";
+        else
+            return;
+        fi
+        let COUNTER=COUNTER+1;
+        sleep 1;
+    done;
+
+    echo "[ERROR] << normal stopped failed, forcing kill:"
+    `ps -ef | grep java.util.logging.config.file=$CATALINA_HOME | grep -v grep | awk {' print $2 '} | xargs kill -9`
+}
+
+# setup configurator
+create_configurator(){
+    sleep 2 # need to sleep because the filehandle for the tomcat log might not be there if executed directly
+    while read LOGLINE; do
+        if [[ "${LOGLINE}" == *"Server startup"* ]]; then
+            sleep 2
+            echo "[INFO] >> Running SSOConfigurator ($INSTANCE_NAME):"
+            /usr/bin/java -jar $OPENAM_TOOLS/configurator/openam-configurator-tool-13.0.0.jar -f $OPENAM_CONFIG_DIR/config.cfg
+            if [ $? -eq 0 ]; then
+                echo "[INFO] >> SSOConfigurator finished"
+                break
+            else
+                echo "[ERROR] << SSOConfigurator failed"
+                exit 1
+            fi
+    fi
+    done < <(tail -f /var/log/tomcat/catalina.log)
+}
+
+# setup ssoadm tools
+create_ssoadm() {
+    if test -f $OPENAM_HOME/config/bootstrap; then
+        # Dirty hack because setup does not recognize relative paths
+        cd $OPENAM_TOOLS/ssoadmin
+        sh $OPENAM_TOOLS/ssoadmin/setup -p $OPENAM_HOME/config/ --acceptLicense
+        cd /
+        echo "[INFO] >> SSOadmin finished"
+    else
+        echo "[ERROR] << SSOadmin failed"
+        exit 1
+    fi
+    # ssoadm need a password to run commands 
+    if test -f $OPENAM_HOME/config/.pass; then
+        echo "[ERROR] << ADMIN_PWD already set"
+    else
+        cat $OPENAM_CONFIG_DIR/config.cfg | grep 'ADMIN_PWD' | cut -f2 -d= > $OPENAM_HOME/config/.pass
+        chmod 400 $OPENAM_HOME/config/.pass
+        echo "[INFO] >> ADMIN_PWD set"
+    fi
+    echo "[INFO] >> Done!"
+    # ToDo
+    # put ADMIN_PWD in env var
+}
+
+get_configuration() {
+    echo "[INFO] >> Check for Mounted Folder"
+    if test -d $OPENAM_CONFIG_DIR; then
+        # Read Config
+        CONFIG=$(cat ${OPENAM_CONFIG_DIR}/config.json)
+        # Normalize json config
+        echo $CONFIG | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" > $OPENAM_CONFIG_DIR/config.cfg
+        # Copy keystore into place
+        cp $OPENAM_CONFIG_DIR/ssl/cacerts $JAVA_HOME/jre/lib/security/
+    else
+        echo "[ERROR] << Could not read config from folder: $OPENAM_CONFIG_DIR"
+    fi
+}
+
+# Function retreives all available host names and checks if own predetermined hostname is already configured
+# ssoadm and configurator must run prior to this
+#		Required files:
+#		- $OPENAM_CONFIG_DIR/config.cfg
+do_pre_flight_checks() {
+    # analyze output from config file and look for the word "SERVER_URL" split on "/" and use the second part of the word as url param
+    EXPTECTED_HOST=$(cat ${OPENAM_CONFIG_DIR}/config.cfg | grep SERVER_URL | tr -s / /  | cut -f 2 -d '/')
+    CURRENT_HOST=""
+    HOST_MATCH_FLAG=0 #initial value ensures that the previously configured server_url is really set - should this not be the case there is a serious problem
+    # Known Bug call is executed but exception is shown
+    echo "[INFO] << Expected Exception: \"SystemTimer\" java.lang.Error: java.lang.ExceptionInInitializerError"
+    for CURRENT_HOST in `/bin/bash /opt/openam/tools/ssoadmin/z/bin/ssoadm list-servers -u amadmin -f /opt/openam/config/.pass | grep $BASE_DOMAIN | cut -f 3 -d '/'`; do
+        if [[ "$CURRENT_HOST" == "$EXPTECTED_HOST" ]] && [[ ! -z "$CURRENT_HOST" ]] && [[ ! -z "$EXPTECTED_HOST" ]]
+        # Setting debug mode
+        then
+            echo "[INFO] >> Found matching host: ($CURRENT_HOST)"
+            # Check is looking for configured realms and if the configured realm matches the expected. 
+            # If expected realm matches the present realm no configuration will be triggered
+            # If there is no realm matching realm the desired realm will be configured
+            for CURRENT_REALM in `/bin/bash /opt/openam/tools/ssoadmin/z/bin/ssoadm list-realms -u amadmin -f /opt/openam/config/.pass -e /`; do
+                if [ "$CURRENT_REALM" == "$USE_REALM" ]
+                then
+                    # ToDo increase sanity checks
+                    echo "[INFO] >> Found matching realm: ($USE_REALM)"
+                    HOST_MATCH_FLAG=2
+                    break
+                elif [[ "$CURRENT_REALM" != "$USE_REALM" ]] || [[ -z "$CURRENT_REALM" ]]
+                then
+                    echo "[INFO] >> Could not find $USE_REALM realm"
+                    HOST_MATCH_FLAG=1
+                else
+                    echo "[ERROR] << Unknown Error"
+                    exit 1
+                fi
+            done
+        else
+            echo "[INFO] >> No Match for available hosts"
+        fi
+    done
+}
+
+configure_openam() {
+    # The real configuration is executed
+    if [ $HOST_MATCH_FLAG -eq 1 ]
+    then
+        echo "[INFO] >> Configuring Root Realm"
+        ROOT_BATCH=$(/bin/bash /opt/openam/tools/ssoadmin/z/bin/ssoadm do-batch -u amadmin -f /opt/openam/config/.pass -Z ${OPENAM_CONFIG_DIR}/root.cfg --continue)
+        echo "[INFO] >> Done!"
+        echo "[INFO] >> Configuring $USE_REALM Realm"
+        REALM_BATCH=$(/bin/bash /opt/openam/tools/ssoadmin/z/bin/ssoadm do-batch -u amadmin -f /opt/openam/config/.pass -Z ${OPENAM_CONFIG_DIR}/$REALM_SUBDIR/$USE_REALM.cfg --continue)
+        # Flag set for am to detect simpler if its been configured - ssoadm required that the server is restarted otherwise all sanity checks have to be repleated.
+        touch /root/.openamcfg/AMConfig
+        # so openam picks up all the configured changes
+        restart
+        # ToDo - create cleanup task to remove all none required files from host
+        echo "[INFO] >> Done!"
+    elif [ $HOST_MATCH_FLAG -eq 2 ]
+    then
+        echo "[INFO] >> Realm $USE_REALM present"
+        exit 0
+    else
+        echo "[CRITICAL] << Could not find host ...aborting deployment"
+        exit 1
+    fi
+}
+
+init_openam() {
+    echo "[INFO] >> Getting Configuration details for ($INSTANCE_NAME)"
+    get_configuration
+    create_configurator
+    echo "[INFO] >> Installing ssoadm tools"
+    create_ssoadm
+    echo "[INFO] >> Pre-Flight Check"
+    do_pre_flight_checks
+    echo "[INFO] >> Configuring OpenAM"
+    configure_openam
+    echo "[INFO] >> Removing all configuration files"
+    cleanup
+}
+
+start() {
+    echo "[INFO] >> Starting OpenAM instance ($INSTANCE_NAME)"
+    su $RUNAS_USER -c $CATALINA_HOME/bin/startup.sh >> $CATALINA_LOGS/service.log
+    if [ -e /root/.openamcfg/AMConfig ]; then
+        exit 0
+    else
+        init_openam
+    fi
+    echo "[INFO] >> Done!"
+}
+
+stop() {
+    echo "[INFO] >> Stopping OpenAM instance ($INSTANCE_NAME)"
+    su $RUNAS_USER -c $CATALINA_HOME/bin/shutdown.sh >> $CATALINA_LOGS/service.log
+    force_stop;
+    echo "[INFO] >> Done!"
+}
+restart() {
+    stop;
+    sleep 2;
+    start;
+}
+
+# see how we're called
+case "$1" in
+    start)
+        start;
+        ;;
+    stop)
+        stop;
+        ;;
+    status)
+        /bin/true
+        ;;
+    restart|reload)
+        restart;
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status|restart|reload}"
+        exit 1
+        ;;
+esac
+
+exit $?

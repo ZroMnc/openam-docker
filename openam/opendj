@@ -1,0 +1,62 @@
+#!/bin/bash
+#
+# Setup OpenDJ
+# 
+# == Copyright
+#
+# Copyright 2016 Christian Viola
+#
+set -e
+
+#VARS
+CONFIG_DIR=/config/opendj
+FQDN=localhost
+BIND_DN="cn=Directory Manager"
+#EXPORTS
+export PATH=/opt/opendj/bin:$PATH
+
+setup(){
+    /opt/opendj/setup --cli --verbose \
+        --baseDN 'dc=terminus,dc=net' \
+        --addBaseEntry \
+        --enableStartTLS \
+        --doNotStart \
+        --ldapport 1389 \
+        --adminConnectorPort 4444 \
+        --rootUserDN "$BIND_DN" \
+        --rootUserPassword 'TerminusPassword1' \
+        --ldapsPort 1636 \
+        --hostName "$FQDN" \
+        --noPropertiesFile \
+        --backendType pdb \
+        --generateSelfSignedCertificate \
+        --acceptLicense \
+        --no-prompt
+}
+
+copy_schema(){
+    /bin/cp $CONFIG_DIR/schema/* /opt/opendj/config/schema
+}
+
+config(){
+    dsconfig -D "$BIND_DN" -w 'TerminusPassword1' \
+	    --batchFilePath $CONFIG_DIR/dsconfig/dsconfig.batch \
+            --port 4444 -X --no-prompt
+
+    ldapmodify -h "$FQDN" -p 1636 -D "$BIND_DN" -c -w 'TerminusPassword1' \
+	    -f $CONFIG_DIR/ldif/tree.ldif -Z -X
+    ldapmodify -h "$FQDN" -p 1636 -D "$BIND_DN" -c -w 'TerminusPassword1' \
+	    -f $CONFIG_DIR/ldif/permissions.ldif -Z -X
+    ldapmodify -h "$FQDN" -p 1636 -D "$BIND_DN" -c -w 'TerminusPassword1' \
+	    -f $CONFIG_DIR/ldif/test-emp.ldif -Z -X
+}
+
+main(){
+        setup
+        copy_schema
+        /etc/init.d/opendj start
+        config
+}
+
+main
+#EOF
