@@ -1,0 +1,6 @@
+*.war
+*.deb
+*.pin
+*.crt
+*.pem
+*.tar.gz
