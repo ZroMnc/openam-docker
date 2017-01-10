@@ -61,7 +61,7 @@ $ docker build --no-cache -t redpanda/openam:latest .
 
 Run interactive:
 ```bash
-$ docker run -it --rm -v `pwd`/config:/config \
+$ docker run -it -p 8080:8080 --rm -v `pwd`/config:/config \
     --hostname 'auth.terminus.net' \
     redpanda/openam:latest /bin/bash
 
