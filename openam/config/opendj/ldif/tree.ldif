@@ -22,6 +22,12 @@ objectClass: organizationalUnit
 objectClass: top
 ou: tokens
 
+dn: ou=services,dc=terminus,dc=net
+changeType: add
+objectClass:top
+objectClass:organizationalUnit
+ou: people
+
 dn: ou=resource_sets,dc=terminus,dc=net
 changeType: add
 objectClass: organizationalUnit

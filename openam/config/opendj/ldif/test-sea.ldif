@@ -1,0 +1,13 @@
+dn: uid=testservice,ou=services,dc=terminus,dc=net
+changeType: add
+uid: testservice
+userPassword: iamdev@zal123
+givenName: test
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: terminusPerson
+objectClass: top
+userStatus: active
+sn: testservice
+cn: testservice
