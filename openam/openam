@@ -21,7 +21,6 @@ set -e
 # user running the daemon
 RUNAS_USER="root"
 BASE_DOMAIN="terminus.net"
-USE_REALM="employees"
 
 # path to tomcat installation
 CATALINA_HOME="/opt/tomcat/"; export CATALINA_HOME
@@ -138,15 +137,15 @@ do_pre_flight_checks() {
             # If expected realm matches the present realm no configuration will be triggered
             # If there is no realm matching realm the desired realm will be configured
             for CURRENT_REALM in `/bin/bash /opt/openam/tools/ssoadmin/z/bin/ssoadm list-realms -u amadmin -f /opt/openam/config/.pass -e /`; do
-                if [ "$CURRENT_REALM" == "$USE_REALM" ]
+                if [ "$CURRENT_REALM" == "employees" ]
                 then
                     # ToDo increase sanity checks
-                    echo "[INFO] >> Found matching realm: ($USE_REALM)"
+                    echo "[INFO] >> Found matching realm: (employees)"
                     HOST_MATCH_FLAG=2
                     break
-                elif [[ "$CURRENT_REALM" != "$USE_REALM" ]] || [[ -z "$CURRENT_REALM" ]]
+                elif [[ "$CURRENT_REALM" != "employees" ]] || [[ -z "$CURRENT_REALM" ]]
                 then
-                    echo "[INFO] >> Could not find $USE_REALM realm"
+                    echo "[INFO] >> Could not find employees realm"
                     HOST_MATCH_FLAG=1
                 else
                     echo "[ERROR] << Unknown Error"
@@ -166,8 +165,9 @@ configure_openam() {
         echo "[INFO] >> Configuring Root Realm"
         ROOT_BATCH=$(/bin/bash /opt/openam/tools/ssoadmin/z/bin/ssoadm do-batch -u amadmin -f /opt/openam/config/.pass -Z ${OPENAM_CONFIG_DIR}/root.cfg --continue)
         echo "[INFO] >> Done!"
-        echo "[INFO] >> Configuring $USE_REALM Realm"
-        REALM_BATCH=$(/bin/bash /opt/openam/tools/ssoadmin/z/bin/ssoadm do-batch -u amadmin -f /opt/openam/config/.pass -Z ${OPENAM_CONFIG_DIR}/emp/$USE_REALM.cfg --continue)
+        echo "[INFO] >> Configuring employees Realm"
+        REALM_BATCH=$(/bin/bash /opt/openam/tools/ssoadmin/z/bin/ssoadm do-batch -u amadmin -f /opt/openam/config/.pass -Z ${OPENAM_CONFIG_DIR}/emp/employees.cfg --continue)
+        REALM_BATCH_2=$(/bin/bash /opt/openam/tools/ssoadmin/z/bin/ssoadm do-batch -u amadmin -f /opt/openam/config/.pass -Z ${OPENAM_CONFIG_DIR}/sea/services.cfg --continue)
         # Flag set for am to detect simpler if its been configured - ssoadm required that the server is restarted otherwise all sanity checks have to be repleated.
         touch /root/.openamcfg/AMConfig
         # so openam picks up all the configured changes
@@ -176,7 +176,7 @@ configure_openam() {
         echo "[INFO] >> Done!"
     elif [ $HOST_MATCH_FLAG -eq 2 ]
     then
-        echo "[INFO] >> Realm $USE_REALM present"
+        echo "[INFO] >> Realm employees present"
         exit 0
     else
         echo "[CRITICAL] << Could not find host ...aborting deployment"

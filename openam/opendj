@@ -49,6 +49,8 @@ config(){
 	    -f $CONFIG_DIR/ldif/permissions.ldif -Z -X
     ldapmodify -h "$FQDN" -p 1636 -D "$BIND_DN" -c -w 'TerminusPassword1' \
 	    -f $CONFIG_DIR/ldif/test-emp.ldif -Z -X
+    ldapmodify -h "$FQDN" -p 1636 -D "$BIND_DN" -c -w 'TerminusPassword1' \
+	    -f $CONFIG_DIR/ldif/test-sea.ldif -Z -X
 }
 
 main(){
